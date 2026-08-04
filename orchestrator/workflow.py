@@ -1,0 +1,113 @@
+from typing import Dict, Any, List, TypedDict
+from langgraph.graph import StateGraph, END
+
+# Import agents
+from agents import (
+    PlannerAgent,
+    DeveloperAgent,
+    TesterAgent,
+    ReviewerAgent,
+    DocumentationAgent,
+    DeploymentAgent
+)
+
+# Define the workflow state schema
+class AgentState(TypedDict):
+    user_request: str
+    development_plan: str
+    tasks: List[Dict[str, Any]]
+    architecture: str
+    source_code: Dict[str, str]
+    test_files: Dict[str, str]
+    test_results: Dict[str, Any]
+    review_summary: Dict[str, Any]
+    documentation: str
+    deployment_files: Dict[str, str]
+    history: List[str]
+
+# Instantiate agents
+planner_agent = PlannerAgent()
+developer_agent = DeveloperAgent()
+tester_agent = TesterAgent()
+reviewer_agent = ReviewerAgent()
+documentation_agent = DocumentationAgent()
+deployment_agent = DeploymentAgent()
+
+# Define node functions wrapper
+def plan_node(state: AgentState) -> Dict[str, Any]:
+    output = planner_agent.execute(state)
+    output["history"].append("planner")
+    return output
+
+def develop_node(state: AgentState) -> Dict[str, Any]:
+    output = developer_agent.execute(state)
+    output["history"].append("developer")
+    return output
+
+def test_node(state: AgentState) -> Dict[str, Any]:
+    output = tester_agent.execute(state)
+    output["history"].append("tester")
+    return output
+
+def review_node(state: AgentState) -> Dict[str, Any]:
+    output = reviewer_agent.execute(state)
+    output["history"].append("reviewer")
+    return output
+
+def document_node(state: AgentState) -> Dict[str, Any]:
+    output = documentation_agent.execute(state)
+    output["history"].append("documentation")
+    return output
+
+def deploy_node(state: AgentState) -> Dict[str, Any]:
+    output = deployment_agent.execute(state)
+    output["history"].append("deployment")
+    return output
+
+# Conditional router function (e.g. to go back to developer if review fails)
+def route_review(state: AgentState) -> str:
+    summary = state.get("review_summary", {})
+    if summary.get("status") == "APPROVED":
+        return "documentation"
+    else:
+        # If rejected, route back to development
+        print("[Orchestrator Node Router] Code was REJECTED. Routing back to developer...")
+        return "developer"
+
+def create_workflow() -> StateGraph:
+    """
+    Builds the LangGraph state machine representing the SDLC workflow.
+    """
+    # Initialize graph with state schema
+    workflow = StateGraph(AgentState)
+    
+    # Add nodes to graph
+    workflow.add_node("planner", plan_node)
+    workflow.add_node("developer", develop_node)
+    workflow.add_node("tester", test_node)
+    workflow.add_node("reviewer", review_node)
+    workflow.add_node("documentation", document_node)
+    workflow.add_node("deployment", deploy_node)
+    
+    # Set entry point
+    workflow.set_entry_point("planner")
+    
+    # Add simple transitions
+    workflow.add_edge("planner", "developer")
+    workflow.add_edge("developer", "tester")
+    workflow.add_edge("tester", "reviewer")
+    
+    # Add conditional edge based on review outcomes
+    workflow.add_conditional_edges(
+        "reviewer",
+        route_review,
+        {
+            "developer": "developer",        # Feedback loop
+            "documentation": "documentation"  # Proceed if approved
+        }
+    )
+    
+    workflow.add_edge("documentation", "deployment")
+    workflow.add_edge("deployment", END)
+    
+    return workflow.compile()
