@@ -6,7 +6,8 @@ from agents import (
     ReviewerAgent,
     DocumentationAgent,
     DeploymentAgent,
-    SecurityAgent
+    SecurityAgent,
+    NotificationAgent
 )
 
 class Orchestrator:
@@ -22,6 +23,7 @@ class Orchestrator:
         self.security = SecurityAgent()
         self.documentation = DocumentationAgent()
         self.deployment = DeploymentAgent()
+        self.notification = NotificationAgent()
 
     def run(self, user_request: str) -> Dict[str, Any]:
         """
@@ -48,6 +50,7 @@ class Orchestrator:
             "security_report": {},
             "documentation": "",
             "deployment_files": {},
+            "notification_report": {},
             "history": []
         }
         
@@ -78,6 +81,10 @@ class Orchestrator:
         # 7. Deployment Phase
         state = self.deployment.execute(state)
         state["history"].append("deployment")
+        
+        # 8. Notification Phase
+        state = self.notification.execute(state)
+        state["history"].append("notification")
         
         print("="*80 + "\n[Orchestrator] Multi-Agent Workflow Completed Successfully!\n")
         return state

@@ -9,7 +9,8 @@ from agents import (
     ReviewerAgent,
     DocumentationAgent,
     DeploymentAgent,
-    SecurityAgent
+    SecurityAgent,
+    NotificationAgent
 )
 
 # Define the workflow state schema
@@ -25,6 +26,7 @@ class AgentState(TypedDict):
     security_report: Dict[str, Any]
     documentation: str
     deployment_files: Dict[str, str]
+    notification_report: Dict[str, Any]
     history: List[str]
 
 # Instantiate agents
@@ -35,6 +37,7 @@ reviewer_agent = ReviewerAgent()
 security_agent = SecurityAgent()
 documentation_agent = DocumentationAgent()
 deployment_agent = DeploymentAgent()
+notification_agent = NotificationAgent()
 
 # Define node functions wrapper
 def plan_node(state: AgentState) -> Dict[str, Any]:
@@ -72,6 +75,11 @@ def deploy_node(state: AgentState) -> Dict[str, Any]:
     output["history"].append("deployment")
     return output
 
+def notification_node(state: AgentState) -> Dict[str, Any]:
+    output = notification_agent.execute(state)
+    output["history"].append("notification")
+    return output
+
 # Conditional router function (e.g. to go back to developer if review fails)
 def route_review(state: AgentState) -> str:
     summary = state.get("review_summary", {})
@@ -97,6 +105,7 @@ def create_workflow() -> StateGraph:
     workflow.add_node("security", security_node)
     workflow.add_node("documentation", document_node)
     workflow.add_node("deployment", deploy_node)
+    workflow.add_node("notification", notification_node)
     
     # Set entry point
     workflow.set_entry_point("planner")
@@ -118,6 +127,7 @@ def create_workflow() -> StateGraph:
     
     workflow.add_edge("security", "documentation")
     workflow.add_edge("documentation", "deployment")
-    workflow.add_edge("deployment", END)
+    workflow.add_edge("deployment", "notification")
+    workflow.add_edge("notification", END)
     
     return workflow.compile()

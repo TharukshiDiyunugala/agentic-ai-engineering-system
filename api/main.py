@@ -27,6 +27,7 @@ class BuildResponse(BaseModel):
     security_report: Dict[str, Any]
     documentation: str
     deployment_files: Dict[str, str]
+    notification_report: Dict[str, Any]
     history: List[str]
 
 @app.get("/")
