@@ -19,11 +19,12 @@ def test_sequential_orchestrator_flow():
     assert "test_files" in state
     assert "test_results" in state
     assert "review_summary" in state
+    assert "security_report" in state
     assert "documentation" in state
     assert "deployment_files" in state
     
     # Assert sequential flow history
-    assert state["history"] == ["planning", "development", "testing", "review", "documentation", "deployment"]
+    assert state["history"] == ["planning", "development", "testing", "review", "security", "documentation", "deployment"]
     
     # Assert review approved
     assert state["review_summary"]["status"] == "APPROVED"

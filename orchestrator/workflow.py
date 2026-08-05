@@ -8,7 +8,8 @@ from agents import (
     TesterAgent,
     ReviewerAgent,
     DocumentationAgent,
-    DeploymentAgent
+    DeploymentAgent,
+    SecurityAgent
 )
 
 # Define the workflow state schema
@@ -21,6 +22,7 @@ class AgentState(TypedDict):
     test_files: Dict[str, str]
     test_results: Dict[str, Any]
     review_summary: Dict[str, Any]
+    security_report: Dict[str, Any]
     documentation: str
     deployment_files: Dict[str, str]
     history: List[str]
@@ -30,6 +32,7 @@ planner_agent = PlannerAgent()
 developer_agent = DeveloperAgent()
 tester_agent = TesterAgent()
 reviewer_agent = ReviewerAgent()
+security_agent = SecurityAgent()
 documentation_agent = DocumentationAgent()
 deployment_agent = DeploymentAgent()
 
@@ -54,6 +57,11 @@ def review_node(state: AgentState) -> Dict[str, Any]:
     output["history"].append("reviewer")
     return output
 
+def security_node(state: AgentState) -> Dict[str, Any]:
+    output = security_agent.execute(state)
+    output["history"].append("security")
+    return output
+
 def document_node(state: AgentState) -> Dict[str, Any]:
     output = documentation_agent.execute(state)
     output["history"].append("documentation")
@@ -68,7 +76,7 @@ def deploy_node(state: AgentState) -> Dict[str, Any]:
 def route_review(state: AgentState) -> str:
     summary = state.get("review_summary", {})
     if summary.get("status") == "APPROVED":
-        return "documentation"
+        return "security"
     else:
         # If rejected, route back to development
         print("[Orchestrator Node Router] Code was REJECTED. Routing back to developer...")
@@ -86,6 +94,7 @@ def create_workflow() -> StateGraph:
     workflow.add_node("developer", develop_node)
     workflow.add_node("tester", test_node)
     workflow.add_node("reviewer", review_node)
+    workflow.add_node("security", security_node)
     workflow.add_node("documentation", document_node)
     workflow.add_node("deployment", deploy_node)
     
@@ -103,10 +112,11 @@ def create_workflow() -> StateGraph:
         route_review,
         {
             "developer": "developer",        # Feedback loop
-            "documentation": "documentation"  # Proceed if approved
+            "security": "security"           # Proceed if approved
         }
     )
     
+    workflow.add_edge("security", "documentation")
     workflow.add_edge("documentation", "deployment")
     workflow.add_edge("deployment", END)
     
