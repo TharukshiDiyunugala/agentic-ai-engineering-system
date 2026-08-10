@@ -7,6 +7,7 @@ from agents.documentation import DocumentationAgent
 from agents.deployment import DeploymentAgent
 from agents.security import SecurityAgent
 from agents.notification import NotificationAgent
+from agents.performance import PerformanceAgent
 
 __all__ = [
     "BaseAgent",
@@ -17,5 +18,6 @@ __all__ = [
     "DocumentationAgent",
     "DeploymentAgent",
     "SecurityAgent",
-    "NotificationAgent"
+    "NotificationAgent",
+    "PerformanceAgent"
 ]
