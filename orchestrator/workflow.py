@@ -10,7 +10,8 @@ from agents import (
     DocumentationAgent,
     DeploymentAgent,
     SecurityAgent,
-    NotificationAgent
+    NotificationAgent,
+    PerformanceAgent
 )
 
 # Define the workflow state schema
@@ -24,6 +25,7 @@ class AgentState(TypedDict):
     test_results: Dict[str, Any]
     review_summary: Dict[str, Any]
     security_report: Dict[str, Any]
+    performance_report: Dict[str, Any]
     documentation: str
     deployment_files: Dict[str, str]
     notification_report: Dict[str, Any]
@@ -35,6 +37,7 @@ developer_agent = DeveloperAgent()
 tester_agent = TesterAgent()
 reviewer_agent = ReviewerAgent()
 security_agent = SecurityAgent()
+performance_agent = PerformanceAgent()
 documentation_agent = DocumentationAgent()
 deployment_agent = DeploymentAgent()
 notification_agent = NotificationAgent()
@@ -63,6 +66,11 @@ def review_node(state: AgentState) -> Dict[str, Any]:
 def security_node(state: AgentState) -> Dict[str, Any]:
     output = security_agent.execute(state)
     output["history"].append("security")
+    return output
+
+def performance_node(state: AgentState) -> Dict[str, Any]:
+    output = performance_agent.execute(state)
+    output["history"].append("performance")
     return output
 
 def document_node(state: AgentState) -> Dict[str, Any]:
@@ -103,6 +111,7 @@ def create_workflow() -> StateGraph:
     workflow.add_node("tester", test_node)
     workflow.add_node("reviewer", review_node)
     workflow.add_node("security", security_node)
+    workflow.add_node("performance", performance_node)
     workflow.add_node("documentation", document_node)
     workflow.add_node("deployment", deploy_node)
     workflow.add_node("notification", notification_node)
@@ -125,7 +134,8 @@ def create_workflow() -> StateGraph:
         }
     )
     
-    workflow.add_edge("security", "documentation")
+    workflow.add_edge("security", "performance")
+    workflow.add_edge("performance", "documentation")
     workflow.add_edge("documentation", "deployment")
     workflow.add_edge("deployment", "notification")
     workflow.add_edge("notification", END)

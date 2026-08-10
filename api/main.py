@@ -25,6 +25,7 @@ class BuildResponse(BaseModel):
     test_results: Dict[str, Any]
     review_summary: Dict[str, Any]
     security_report: Dict[str, Any]
+    performance_report: Dict[str, Any]
     documentation: str
     deployment_files: Dict[str, str]
     notification_report: Dict[str, Any]

@@ -7,7 +7,8 @@ from agents import (
     DocumentationAgent,
     DeploymentAgent,
     SecurityAgent,
-    NotificationAgent
+    NotificationAgent,
+    PerformanceAgent
 )
 
 class Orchestrator:
@@ -21,6 +22,7 @@ class Orchestrator:
         self.tester = TesterAgent()
         self.reviewer = ReviewerAgent()
         self.security = SecurityAgent()
+        self.performance = PerformanceAgent()
         self.documentation = DocumentationAgent()
         self.deployment = DeploymentAgent()
         self.notification = NotificationAgent()
@@ -48,6 +50,7 @@ class Orchestrator:
             "test_results": {},
             "review_summary": {},
             "security_report": {},
+            "performance_report": {},
             "documentation": "",
             "deployment_files": {},
             "notification_report": {},
@@ -74,15 +77,19 @@ class Orchestrator:
         state = self.security.execute(state)
         state["history"].append("security")
         
-        # 6. Documentation Phase
+        # 6. Performance Audit Phase
+        state = self.performance.execute(state)
+        state["history"].append("performance")
+        
+        # 7. Documentation Phase
         state = self.documentation.execute(state)
         state["history"].append("documentation")
         
-        # 7. Deployment Phase
+        # 8. Deployment Phase
         state = self.deployment.execute(state)
         state["history"].append("deployment")
         
-        # 8. Notification Phase
+        # 9. Notification Phase
         state = self.notification.execute(state)
         state["history"].append("notification")
         
