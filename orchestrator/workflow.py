@@ -11,7 +11,8 @@ from agents import (
     DeploymentAgent,
     SecurityAgent,
     NotificationAgent,
-    PerformanceAgent
+    PerformanceAgent,
+    DatabaseAgent
 )
 
 # Define the workflow state schema
@@ -21,6 +22,7 @@ class AgentState(TypedDict):
     tasks: List[Dict[str, Any]]
     architecture: str
     source_code: Dict[str, str]
+    database_files: Dict[str, str]
     test_files: Dict[str, str]
     test_results: Dict[str, Any]
     review_summary: Dict[str, Any]
@@ -34,6 +36,7 @@ class AgentState(TypedDict):
 # Instantiate agents
 planner_agent = PlannerAgent()
 developer_agent = DeveloperAgent()
+database_agent = DatabaseAgent()
 tester_agent = TesterAgent()
 reviewer_agent = ReviewerAgent()
 security_agent = SecurityAgent()
@@ -51,6 +54,11 @@ def plan_node(state: AgentState) -> Dict[str, Any]:
 def develop_node(state: AgentState) -> Dict[str, Any]:
     output = developer_agent.execute(state)
     output["history"].append("developer")
+    return output
+
+def database_node(state: AgentState) -> Dict[str, Any]:
+    output = database_agent.execute(state)
+    output["history"].append("database")
     return output
 
 def test_node(state: AgentState) -> Dict[str, Any]:
@@ -108,6 +116,7 @@ def create_workflow() -> StateGraph:
     # Add nodes to graph
     workflow.add_node("planner", plan_node)
     workflow.add_node("developer", develop_node)
+    workflow.add_node("database", database_node)
     workflow.add_node("tester", test_node)
     workflow.add_node("reviewer", review_node)
     workflow.add_node("security", security_node)
@@ -121,7 +130,8 @@ def create_workflow() -> StateGraph:
     
     # Add simple transitions
     workflow.add_edge("planner", "developer")
-    workflow.add_edge("developer", "tester")
+    workflow.add_edge("developer", "database")
+    workflow.add_edge("database", "tester")
     workflow.add_edge("tester", "reviewer")
     
     # Add conditional edge based on review outcomes

@@ -8,7 +8,8 @@ from agents import (
     DeploymentAgent,
     SecurityAgent,
     NotificationAgent,
-    PerformanceAgent
+    PerformanceAgent,
+    DatabaseAgent
 )
 
 class Orchestrator:
@@ -19,6 +20,7 @@ class Orchestrator:
     def __init__(self):
         self.planner = PlannerAgent()
         self.developer = DeveloperAgent()
+        self.database = DatabaseAgent()
         self.tester = TesterAgent()
         self.reviewer = ReviewerAgent()
         self.security = SecurityAgent()
@@ -46,6 +48,7 @@ class Orchestrator:
             "tasks": [],
             "architecture": "",
             "source_code": {},
+            "database_files": {},
             "test_files": {},
             "test_results": {},
             "review_summary": {},
@@ -65,31 +68,35 @@ class Orchestrator:
         state = self.developer.execute(state)
         state["history"].append("development")
         
-        # 3. QA / Testing Phase
+        # 3. Database Schema Generation Phase
+        state = self.database.execute(state)
+        state["history"].append("database")
+        
+        # 4. QA / Testing Phase
         state = self.tester.execute(state)
         state["history"].append("testing")
         
-        # 4. Code Review Phase
+        # 5. Code Review Phase
         state = self.reviewer.execute(state)
         state["history"].append("review")
         
-        # 5. Security Audit Phase
+        # 6. Security Audit Phase
         state = self.security.execute(state)
         state["history"].append("security")
         
-        # 6. Performance Audit Phase
+        # 7. Performance Audit Phase
         state = self.performance.execute(state)
         state["history"].append("performance")
         
-        # 7. Documentation Phase
+        # 8. Documentation Phase
         state = self.documentation.execute(state)
         state["history"].append("documentation")
         
-        # 8. Deployment Phase
+        # 9. Deployment Phase
         state = self.deployment.execute(state)
         state["history"].append("deployment")
         
-        # 9. Notification Phase
+        # 10. Notification Phase
         state = self.notification.execute(state)
         state["history"].append("notification")
         

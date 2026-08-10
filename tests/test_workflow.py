@@ -16,6 +16,7 @@ def test_sequential_orchestrator_flow():
     assert len(state["tasks"]) > 0
     assert "architecture" in state
     assert "source_code" in state
+    assert "database_files" in state
     assert "test_files" in state
     assert "test_results" in state
     assert "review_summary" in state
@@ -27,7 +28,7 @@ def test_sequential_orchestrator_flow():
     
     # Assert sequential flow history
     assert state["history"] == [
-        "planning", "development", "testing", "review", 
+        "planning", "development", "database", "testing", "review", 
         "security", "performance", "documentation", "deployment", "notification"
     ]
     

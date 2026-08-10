@@ -21,6 +21,7 @@ class BuildResponse(BaseModel):
     tasks: List[Dict[str, Any]]
     architecture: str
     source_code: Dict[str, str]
+    database_files: Dict[str, str]
     test_files: Dict[str, str]
     test_results: Dict[str, Any]
     review_summary: Dict[str, Any]
