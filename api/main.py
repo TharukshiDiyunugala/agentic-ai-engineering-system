@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, List
 from orchestrator.orchestrator import Orchestrator
@@ -7,6 +8,15 @@ app = FastAPI(
     title="Multi-Agent AI SE Team API",
     description="Backend API orchestrating specialized planning, development, QA, and DevOps agents.",
     version="1.0.0"
+)
+
+# Enable CORS for frontend API calls
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Instantiate the orchestration layer
